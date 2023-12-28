@@ -1,0 +1,18 @@
+{
+  "name": "vue3-practice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev":"vite",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vitejs/plugin-vue": "^5.0.0",
+    "vite": "^5.0.10",
+    "vue": "^3.3.13"
+  }
+}
