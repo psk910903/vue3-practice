@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import { reactive, toRefs, toRef } from 'vue'
+import { reactive, toRef } from 'vue'
 export default {
   setup () {
     const book = reactive({
