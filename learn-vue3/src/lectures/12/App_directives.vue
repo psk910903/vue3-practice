@@ -29,7 +29,12 @@
                예를 들어, v-bind 디렉티브는 반응적으로 html 속성을 갱신하는 데 사용한다.
   - 수식어 : 수식어는 점(.)으로 표시되는 특수 접미사로 디렉티브가 특별한 방식으로 바인딩되어야 함을 나타낸다.
 -->
+
   <p>{{ msg }}</p>
+  <p v-text="msg"></p>
+  <p v-html="htmlMsg"></p>
+  <p v-text="htmlMsg"></p>
+  <p v-once>{{ msg }}!!!</p>
   </div>
 </template>
 
@@ -38,9 +43,11 @@ import { ref } from 'vue'
 export default {
   setup () {
     const msg = ref('안녕하세요')
+    const htmlMsg = ref('<strong>안녕하세요</strong>')
 
     return {
       msg,
+      htmlMsg
     }
   }
 }
