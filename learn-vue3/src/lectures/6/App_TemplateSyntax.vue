@@ -1,57 +1,56 @@
 <template lang="">
-  <div>
-    <h2>보간법</h2>
-    <div>{{message}}</div>
-    <div v-once>{{message}}</div>
-    <button @click="message = message + '!'">Click</button>
-    <hr>
-    <h2>HTML</h2>
-    <p>텍스트: {{ rawHtml }}</p>
-    <p> v-html: <span v-html="rawHtml"></span></p>
-    <hr>
-    <h2>속성 바인딩</h2>
-    <div title="안녕하세요">마우스를 올려보세요</div>
-    <div v-bind:title="dynamicTitle">마우스를 올려보세요</div>
-    <input type="text" value="홍길동" disabled=true>
-    <br>
-    <input type="text" value="홍길동" v-bind:disabled='isInputDisabled'>
-    <br>
-    <br>
-    <div>단축속성 v-bind: -> : 가능</div>
-    <div :title="dynamicTitle">마우스를 올려보세요</div>
-    <input type="text" value="홍길동" :disabled='isInputDisabled'>
-    <br>
-    <br>
-    <div>다중속성 가능</div>
-    <input v-bind="attrs">
-    <h2>JavaScript</h2>
-    {{message.split('').reverse().join("")}} <br>
-    {{ isInputDisabled ? '예' : '아니오'}}
-  </div>
+	<div>
+		<h2>보간법</h2>
+		<div>{{ message }}</div>
+		<div v-once>{{ message }}</div>
+		<button @click="message = message + '!'">Click</button>
+		<hr />
+		<h2>HTML</h2>
+		<p>텍스트: {{ rawHtml }}</p>
+		<p>v-html: <span v-html="rawHtml"></span></p>
+		<hr />
+		<h2>속성 바인딩</h2>
+		<div title="안녕하세요">마우스를 올려보세요</div>
+		<div v-bind:title="dynamicTitle">마우스를 올려보세요</div>
+		<input type="text" value="홍길동" disabled="true" />
+		<br />
+		<input type="text" value="홍길동" v-bind:disabled="isInputDisabled" />
+		<br />
+		<br />
+		<div>단축속성 v-bind: -> : 가능</div>
+		<div :title="dynamicTitle">마우스를 올려보세요</div>
+		<input type="text" value="홍길동" :disabled="isInputDisabled" />
+		<br />
+		<br />
+		<div>다중속성 가능</div>
+		<input v-bind="attrs" />
+		<h2>JavaScript</h2>
+		{{ message.split('').reverse().join('') }} <br />
+		{{ isInputDisabled ? '예' : '아니오' }}
+	</div>
 </template>
 <script>
 import { ref } from 'vue';
 export default {
-  
-  setup() {
-    const message = ref('안녕하세요')
-    const rawHtml = ref('<strong>안녕하세요</strong>')
-    const dynamicTitle = ref('안녕하세요!!')
-    const isInputDisabled = ref(true)
-    const attrs = ref({
-      type: 'password',
-      value: '12345678',
-      disabled: false,
-    })
-    return {
-      message,
-      rawHtml,
-      dynamicTitle,
-      isInputDisabled,
-      attrs,
-    };
-  }
-}
+	setup() {
+		const message = ref('안녕하세요');
+		const rawHtml = ref('<strong>안녕하세요</strong>');
+		const dynamicTitle = ref('안녕하세요!!');
+		const isInputDisabled = ref(true);
+		const attrs = ref({
+			type: 'password',
+			value: '12345678',
+			disabled: false,
+		});
+		return {
+			message,
+			rawHtml,
+			dynamicTitle,
+			isInputDisabled,
+			attrs,
+		};
+	},
+};
 //텍스트 보간법
 
 //데이터 바인딩의 가장 기본형태는 {{ data }} (이중 중괄호)를 사용하는 것이다.
@@ -70,6 +69,4 @@ export default {
 //이중 중괄호는 HTML 속성에 사용할 수 없다. v-bind 디렉티브를 사용해야 한다.
 //단축속성도 가능 v-bind: -> : 로 표기가 가능하다.
 </script>
-<style lang="">
-  
-</style>
+<style lang=""></style>

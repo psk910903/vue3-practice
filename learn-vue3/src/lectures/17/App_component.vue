@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <!--  
+	<div>
+		<!--  
       컴포넌트 정의
       컴포넌트 정의 방법
       1. Single-File Component(SFC) -> 실무에서 일반적으로 사용하는 방법
@@ -34,23 +34,21 @@
       지역 등록된 컴포넌트는 현재 컴포넌트 영역 안에서만 사용할 수 있다. Vue 컴포넌트 인스턴스의 components 옵션을 사용해서 등록할 수 있다.
       
     -->
-    <button @click="counter++">클릭 횟수 {{ counter }}</button>
-  </div>
+		<button @click="counter++">클릭 횟수 {{ counter }}</button>
+	</div>
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref } from 'vue';
 export default {
-  setup () {
-    const counter = ref(0)
+	setup() {
+		const counter = ref(0);
 
-    return {
-      counter
-    }
-  }
-}
+		return {
+			counter,
+		};
+	},
+};
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

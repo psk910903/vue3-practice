@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <!--  
+	<div>
+		<!--  
       Single-File Component(SFC)
 
       개요
@@ -72,20 +72,15 @@
         <style module>은 CSS 모듈로 컴파일되고, CSS 클래스 $style 객체의 속성을 노출한다.
         
     -->
-
-  </div>
+	</div>
 </template>
 
 <script>
 export default {
-  setup () {
-    
-
-    return {}
-  }
-}
+	setup() {
+		return {};
+	},
+};
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>

@@ -1,6 +1,6 @@
 <template>
-  <div>
-<!-- 
+	<div>
+		<!-- 
   디렉티브(directives)
   디렉티브는 v- 접두사가 있는 특수 속성이다.
   기능상에서 중요한 역할인 컴포넌트 (또는 DOM 요소)에게 "~~하게 작동하라"하고 지시하는 지문을 의미한다.
@@ -30,29 +30,27 @@
   - 수식어 : 수식어는 점(.)으로 표시되는 특수 접미사로 디렉티브가 특별한 방식으로 바인딩되어야 함을 나타낸다.
 -->
 
-  <p>{{ msg }}</p>
-  <p v-text="msg"></p>
-  <p v-html="htmlMsg"></p>
-  <p v-text="htmlMsg"></p>
-  <p v-once>{{ msg }}!!!</p>
-  </div>
+		<p>{{ msg }}</p>
+		<p v-text="msg"></p>
+		<p v-html="htmlMsg"></p>
+		<p v-text="htmlMsg"></p>
+		<p v-once>{{ msg }}!!!</p>
+	</div>
 </template>
 
 <script>
-import { ref } from 'vue'
+import { ref } from 'vue';
 export default {
-  setup () {
-    const msg = ref('안녕하세요')
-    const htmlMsg = ref('<strong>안녕하세요</strong>')
+	setup() {
+		const msg = ref('안녕하세요');
+		const htmlMsg = ref('<strong>안녕하세요</strong>');
 
-    return {
-      msg,
-      htmlMsg
-    }
-  }
-}
+		return {
+			msg,
+			htmlMsg,
+		};
+	},
+};
 </script>
 
-<style lang="scss" scoped>
-
-</style>
+<style lang="scss" scoped></style>
