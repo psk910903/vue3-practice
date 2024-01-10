@@ -1,5 +1,5 @@
 <template>
-	<div class="card" style="width: 18rem">
+	<div class="card" style="width: 10rem">
 		<div class="card-body">
 			<!-- type: news, notice -->
 			<span class="badge bg-secondary">{{ typeName }}</span>
@@ -34,7 +34,7 @@ export default {
 		},
 		contents: {
 			type: String,
-			required: true,
+			// required: true,
 		},
 		isLike: {
 			type: Boolean,
