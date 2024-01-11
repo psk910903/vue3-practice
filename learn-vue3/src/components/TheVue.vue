@@ -1,82 +1,32 @@
 <template>
 	<main>
 		<div class="container py-4">
-			<PostCreate @create-post="createPost" />
-			<hr class="my-4" />
-			<div class="row g-3">
-				<!-- <div class="col-4">
-          <AppCard title="제목" contents="내용"/>
-        </div>
-        <div class="col-4">
-          <AppCard :title="post.title" :contents="post.contents"/>
-        </div> -->
-				<div v-for="post in posts" :key="post.id" class="col-4">
-					<AppCard
-						:title="post.title"
-						:contents="post.contents"
-						:type="post.type"
-						:is-like="post.isLike"
-						@toggle-like="post.isLike = !post.isLike"
-					/>
-				</div>
+			<div>
+				<MyButton class="my-button" id="my-button" @click="sayHello"></MyButton>
+				<LabelInput :label="'이름'"></LabelInput>
+				<!-- 
+					현재 LabelInput은 다중노드 상태임
+					다중 속성은 루트 엘리먼트에 적용되는데 다중노드기 때문에 루트를 못찾아서 에러가 발생할 수 있음
+					LabelInput 내부에서 어느 요소에 바인딩할지 명시적으로 표시해줘야 함
+				-->
 			</div>
-			<hr class="my-4" />
-			<!-- <LabelInput
-				:model-value="userName"
-				@update:model-value="value => (userName = value)"
-				/> -->
-			<LabelInput v-model:userName="userName" label="이름" />
-			<LabelTitle v-model:content="userName" label="제목" />
-			<hr class="my-4" />
-			<UserName v-model:firstName="firstName" v-model:lastName="lastName" />
 		</div>
 	</main>
 </template>
 
 <script>
-import AppCard from '@/components/AppCard.vue';
-import PostCreate from '@/components/PostCreate.vue';
+import MyButton from '@/components/MyButton.vue';
 import LabelInput from '@/components/LabelInput.vue';
-import LabelTitle from '@/components/LabelTitle.vue';
-import UserName from '@/components/UserName.vue';
-
-import { reactive, ref } from 'vue';
 export default {
 	components: {
-		AppCard,
-		PostCreate,
+		MyButton,
 		LabelInput,
-		LabelTitle,
-		UserName,
 	},
 	setup() {
-		const post = reactive({
-			title: '제목2',
-			contents: '내용2',
-		});
-
-		const posts = reactive([
-			{ id: 1, title: '제목1', contents: '내용1', isLike: true, type: 'news' },
-			{ id: 2, title: '제목2', contents: '내용2', isLike: true, type: 'news' },
-			{ id: 3, title: '제목3', contents: '내용3', isLike: true, type: 'news' },
-			{ id: 4, title: '제목4', contents: '내용4', isLike: true, type: 'news' },
-			{
-				id: 5,
-				title: '제목5',
-				contents: '내용5',
-				isLike: false,
-				type: 'notice',
-			},
-			{ id: 6, title: '제목6', contents: '내용6', isLike: true, type: 'news' },
-		]);
-		const createPost = newPost => {
-			posts.push(newPost);
+		const sayHello = () => {
+			alert('안녕하세요');
 		};
-
-		const userName = ref('');
-		const firstName = ref('');
-		const lastName = ref('');
-		return { post, posts, createPost, userName, firstName, lastName };
+		return { sayHello };
 	},
 };
 </script>

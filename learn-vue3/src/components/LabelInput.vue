@@ -1,26 +1,23 @@
 <template>
-	<label>
+	<label class="form-label">
 		{{ label }}
-		<!-- <input type="text" v-model="userName" /> -->
-		<input type="text" v-model="value" />
 	</label>
-	<!-- :value="modelValue"
-		@input="$emit('update:modelValue', $event.target.value)" -->
+	<input v-bind="$attrs" type="text" v-model="value" class="form-control" />
 </template>
 
 <script>
 import { computed } from 'vue';
 
 export default {
-	props: ['userName', 'label'], //로컬 참조의 값이 동기화되는 prop
-	emits: ['update:userName'], //로컬 참조의 값이 변경될 때 발생하는 이벤트
+	props: ['modelValue', 'label'], //로컬 참조의 값이 동기화되는 prop
+	emits: ['update:modelValue'], //로컬 참조의 값이 변경될 때 발생하는 이벤트
 	setup(props, { emit }) {
 		const value = computed({
 			get() {
-				return props.userName;
+				return props.modelValue;
 			},
 			set(value) {
-				emit('update:userName', value);
+				emit('update:modelValue', value);
 			},
 		});
 		return { value };
