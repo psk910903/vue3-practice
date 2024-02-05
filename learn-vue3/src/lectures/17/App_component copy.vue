@@ -11,7 +11,7 @@
         <template>
           - 각 *.vue 파일은 한 번에 최대 하나의 top-level <template> 블록을 포함할 수 있다.
           - 콘텐츠는 추출되어 @vue/compiler-dom 으로 전달되고, 
-            JavaScript 랜더 기능으로 사전 컴파일되고, render 옵션으로 내보내어 컴포넌트에 첨부된다.
+            JavaScript 렌더 기능으로 사전 컴파일되고, render 옵션으로 내보내어 컴포넌트에 첨부된다.
         <script>
           - 각 *.vue 파일은 한 번에 최대 하나의 <script> 블록을 포함할 수 있다.(<script setup> 제외)
           - 스크립트는 ES 모듈로 실행된다.
