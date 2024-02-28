@@ -519,6 +519,306 @@
     Options API의 methods를 사용하면 컴포넌트의 로직을 단순화하고 코드를 재사용할 수 있다.
     여러 컴포넌트에서 동일한 메서드를 사용해야할 때 특히 유용하다.
 
+  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  watch
+
+    데이터 변경 시 호출될 감시 콜백을 선언한다.
+
+    타입
+
+      interface ComponentOptions {
+        watch?: {
+          [key: string]: WatchOptionItem | WatchOptionItem[]
+        }
+      }
+
+      type WatchOptionItem = string | WatchCallback | ObjectWatchOptionItem
+
+      type WatchCallback<T> = (
+        value: T,
+        oldValue: T,
+        onCleanup: (cleanupFn: () => void) => void
+      ) => void
+
+      type ObjectWatchOptionItem = {
+        handler: WatchCallback | string
+        immediate?: boolean // 기본 값: false
+        deep?: boolean // 기본 값: false
+        flush?: 'pre' | 'post' | 'sync' // 기본 값: 'pre'
+        onTrack?: (event: DebuggerEvent) => void
+        onTrigger?: (event: DebuggerEvent) => void
+      }
+
+    세부 사항
+
+      watch 옵션은 키가 감시할 반응형 컴포넌트 인스턴스 속성(예: data 또는 computed를 통해 선언된 속성)이고, 값이 해당 콜백으로 이루어진 객체이다.
+      콜백은 감시되는 소스의 새값과 이전 값을 인자로 수신한다.
+
+      루트 수준 속성이 아닌 경우, 키는 a.b.c와 같이 점으로 구분된 경로가 될 수도 있다. 이 사용법은 복잡한 표현식을 지원하지 않으며, 점으로 구분된 경로만 지원된다.
+      복잡한 데이터 소스를 감시해야 하는 경우, 명령형 $watch() API를 사용해야 한다.
+
+      값은 메서드 이름에 해당하는 문자열(methods를 통해 선언됨) 또는 추가적인 옵션을 포함하는 객체일 수도 있다. 
+      객체 문법을 사용할 경우, handler 필드에 콜백을 선언해야 한다. 추가 업션은 다음과 같다.
+
+      - immediate: 감시자 생성 시 즉시 콜백 트리거. 첫 호출 시 이전 값은 undefined.
+      - deep: 객체 또는 배열인 경우 내부 깊숙한 곳에서 변경 사항 발생 시에도 콜백이 실행되도록 한다.
+      - flush: 콜백 실행 타이밍을 조정한다.(watchEffect())
+      - onTrack/onTrigger: 감시자의 의존성을 디버그한다.
+
+      감시 콜백을 선언할 때 화살표 함수를 사용해선 안 되는데, this로 컴포넌트 인스턴스에 접근할 수 없기 때문이다.
+
+    예제
+
+      export default {
+        data() {
+          return {
+            a: 1,
+            b: 2,
+            c: {
+              d: 4
+            },
+            e: 5,
+            f: 6
+          }
+        },
+        watch: {
+          // 루트 레벨 속성 감시
+          a(val, oldVal) {
+            console.log(`new: ${val}, old: ${oldVal}`)
+          },
+          // 메서드 이름 문자열
+          b: 'someMethod',
+          // 중첩 깊이에 관계없이 감시하는 객체 속성이 변경될 때마다 콜백을 호출
+          c: {
+            handler(val, oldVal) {
+              console.log('c 변경됨')
+            },
+            deep: true
+          },
+          // 중첩 속성 감시:
+          'c.d': function (val, oldVal) {
+            /* ... */
+          },
+          // 콜백은 감시 시작 직후에도 호출됨
+          e: {
+            handler(val, oldVal) {
+              console.log('e 변경됨')
+            },
+            immediate: true
+          },
+          // 콜백 배열을 전달할 수 있으며 하나씩 호출됨
+          f: [
+            'handle1',
+            function handle2(val, oldVal) {
+              console.log('handle2 실행됨!')
+            },
+            {
+              handler: function handle3(val, oldVal) {
+                console.log('handle3 실행됨!')
+              }
+              /* ... */
+            }
+          ]
+        },
+        methods: {
+          someMethod() {
+            console.log('b 변경됨')
+          },
+          handle1() {
+            console.log('handle1 실행됨!')
+          }
+        },
+        created() {
+          this.a = 3 // => 현재 값: 3, 이전 값: 1
+        }
+      }
+
+  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  emits
+
+    컴포넌트에서 내보낼 커스텀 이벤트를 선언한다.
+
+    타입
+
+      interface ComponentOptions {
+        emits?: ArrayEmitsOptions | ObjectEmitsOptions
+      }
+
+      type ArrayEmitsOptions = string[]
+
+      type ObjectEmitsOptions = { [key: string]: EmitValidator | null }
+
+      type EmitValidator = (...args: unknown[]) => boolean
+
+    세부 사항
+
+      내보낼 이벤트는 두 가지 타입으로 선언할 수 있다.
+
+      1. 문자열 배열을 이용한 간단한 형태
+      2. "키: prop의 이름", "값: null 또는 유효성 검사 함수"를 속성으로 하는 객체를 이용한 완전한 형태
+
+      유효성 검사 함수는 컴포넌트의 $emit 호출에 전달된 인자를 수신한다.
+      예를 들어, this.$emit('foo', 1)이 호출되면, foo에 해당하는 유효성 검사기는 인자 1을 받는다.
+      유효성 검사 함수는 이벤트 인자의 유효성을 불리언으로 반환해야 한다.
+
+      emits 옵션은 기본 DOM 이벤트 리스너가 아닌 컴포넌트 이벤트 리스너로 간주되는 이벤트 리스너에 영향을 미친다.
+      emits에 선언된 이벤트의 리스너는 컴포넌트의 $attrs 객체에서 제거되므로, 컴포넌트의 루트 엘리먼트로 전달되지 않는다.
+      자세한 내용은 폴스루 속성 참고
+
+    예제
+
+      배열 문법
+
+        export default {
+          emits: ['check'],
+          created() {
+            this.$emit('check')
+          }
+        }
+
+      객체 문법
+
+        export default {
+          emits: {
+            // 유효성 검사 없음
+            click: null,
+
+            // 유효성 검사 사용
+            submit: (payload) => {
+              if (payload.email && payload.password) {
+                return true
+              } else {
+                console.warn(`잘못된 정보 제출 이벤트!`)
+                return false
+              }
+            }
+          }
+        }
+
+    emits는 컴포넌트가 발생시키는 이벤트를 정의하는 옵션이다.
+    이를 통해 부모 컴포넌트에서 리스닝할 수 있는 이벤트 목록을 명시적으로 지정할 수 있다.
+
+    emits 옵션을 사용하면 컴포넌트가 어떤 이벤트를 발생시키는지 명확하게 알 수 있으며, 타입 검사와 같은 도구들이 올바른 사용을 돕게 된다.
+    또한 코드 읽기와 유지보수가 훨씬 쉬워진다.
+
+    emits 옵션은 배열이나 객체 또는 함수의 형태로 제공될 수 있다.
+
+    배열 형태: 각 요소는 해당 컴포넌트에서 발생시킬 수 있는 이벤트의 이름을 나타낸다.
+    부모 컴포넌트에서 이러한 이벤트를 리스닝할 수 있다.
+
+      const app = Vue.createApp({
+        emits: ['update:modelValue', 'input'], // update:modelValue와 input 이벤트를 발생시킬 수 있음
+        // ...
+      });
+
+    객체 형태: 키는 이벤트 이름이고 값은 해당 이벤트를 발생시키는 함수이다. 함수는 옵셔널이며, 사용하면 해당 이벤트의 처리를 커스터마이징 할 수 있다.
+
+      const app = Vue.createApp({
+        emits: {
+          'update:modelValue': (newValue) => {
+            // 이벤트 발생시 처리할 로직
+            console.log('update:modelValue event emitted with value:', newValue);
+            return true; // 이벤트를 발생시키기 위해 true를 반환해야 함
+          },
+          'customEvent': () => {
+            // 이벤트 발생시 처리할 로직
+            console.log('customEvent emitted');
+            return false; // false를 반환하면 이벤트가 발생하지 않음
+          }
+        },
+        // ...
+      });
+
+    emits 옵션을 사용하면 컴포넌트의 인터페이스를 명확히 정의할 수 있으며, 이는 컴포넌트를 사용하는 개발자가 컴포넌트와의 상호작용을 이해하고 쉽게 사용할 수 있도록 도와준다.
+
+  -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+  expose
+
+    부모 컴포넌트 인스턴스에서 템플릿 참조로 접근할 때, 노출될 공용 속성을 선언한다.
+
+    타입
+
+      interface ComponentOptions {
+        expose?: string[]
+      }
+
+    세부 정보
+
+      기본적으로 컴포넌트 인스턴스는 $parent, $root 또는 템플릿 참조($refs)를 통해 접근할 때, 모든 인스턴스 속성을 부모에게 노출한다.
+      자식 컴포넌트에는 긴밀한 결합을 피하기 위해 비공개로 유지되어야 하는 상태 또는 메서드가 있을 가능성이 높기 때문에, 이것은 바람직하지 않을 수 있다.
+
+      expose 옵션은 속성의 이름 문자열로 이루어진 배열이다. expose를 사용하면 명시적으로 나열된 속성만 컴포넌트의 공개 인스턴스에 노출된다.
+
+      expose는 커스텀 속성에만 영향을 미치며, 빌트인 컴포넌트 인스턴스 속성은 걸러내지 않는다.
+
+    예제
+
+      export default {
+        // 공개 인스턴스에서는 `publicMethod`만 접근 가능
+        expose: ['publicMethod'],
+        methods: {
+          publicMethod() {
+            // ...
+          },
+          privateMethod() {
+            // ...
+          }
+        }
+      }
+
+    expose는 컴포넌트에서 부모 컴포넌트로 함수나 데이터를 노출하는 기능이다. 이것은 Composition API expose와 약간 다르다.
+
+    Options API에서 expose를 사용하면 컴포넌트의 일부를 부모 컴포넌트로 노출할 수 있다.
+    이것은 주로 레거시 코드와의 호환성을 유지하기 위해 사용되며, Composition API보다는 덜 추전된다.
+
+    expose를 사용하려면 컴포넌트의 setup 메서드 내부에서 expose 객체를 반환해야 한다.
+    expose 객체에는 노출하련느 함수나 데이터가 포함된다. 이러한 노출된 함수나 데이터는 부모 컴포넌트에서 직접적으로 엑세스할 수 있다.
+
+    예를 들어, 다음은 Options API에서 expose를 사용하여 컴포넌트에서 함수를 노출하는 방법을 보여준다.
+
+      export default {
+        data() {
+          return {
+            count: 0,
+          };
+        },
+        methods: {
+          increment() {
+            this.count++;
+          },
+        },
+        expose: ['increment'], // increment 함수를 노출합니다.
+      };
+
+    이제 이 컴포넌트를 사용하는 부모 컴포넌트에서 increment 함수에 직접 엑세스할 수 있다.
+
+      <template>
+        <child-component ref="child"></child-component>
+        <button @click="handleIncrement">Increment</button>
+      </template>
+
+      <script>
+      import ChildComponent from './ChildComponent.vue';
+
+      export default {
+        components: {
+          ChildComponent,
+        },
+        methods: {
+          handleIncrement() {
+            this.$refs.child.increment(); // ChildComponent의 increment 함수 호출
+          },
+        },
+      };
+      </script>
+
+    이와 같이 expose를 사용하면 Options API에서 컴포넌트의 일부를 외부에 노출시켜 부모 컴포넌트에서 엑세스할 수 있다.
+
+    
+
 
 
 
