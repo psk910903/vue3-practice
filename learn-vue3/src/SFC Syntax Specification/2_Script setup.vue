@@ -165,7 +165,7 @@
 
   defineProps() & defineEmits()
 
-    완전한 타입 추론을 제원하는 props및 emits와 같은 옵션을 선언하려면, <script setup> 내에서 자동으로 사용할 수 있는 defineProps 및 defineEmits API를 사용한다.
+    완전한 타입 추론을 지원하는 props및 emits와 같은 옵션을 선언하려면, <script setup> 내에서 자동으로 사용할 수 있는 defineProps 및 defineEmits API를 사용한다.
 
       <script setup>
       const props = defineProps({
