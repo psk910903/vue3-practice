@@ -33,7 +33,7 @@
   TypeScript
   
     TS와 호환되는 상태를 만들기 위해 많은 작업을 수행할 필요가 없다. 
-    strict 또는 최소한 niImplicitThis가 활성화되어 있는지 확인하고 피니아가 자동으로 상태 유형을 추론한다.
+    strict 또는 최소한 noImplicitThis가 활성화되어 있는지 확인하고 피니아가 자동으로 상태 유형을 추론한다.
     그러나 몇몇 경우에는 캐스팅으로 보조해야 한다.
 
       export const useUserStore = defineStore('user', {
@@ -175,7 +175,7 @@
 
   상태 변경하기
 
-    store.count++로 스토어를 직접 변경하는 방법 외에도, $path 메소드를 호출할 수도 있다. 이것을 사용하여 state 객체의 일부분을 동시에 변경할 수 있다.
+    store.count++로 스토어를 직접 변경하는 방법 외에도, $patch 메소드를 호출할 수도 있다. 이것을 사용하여 state 객체의 일부분을 동시에 변경할 수 있다.
 
       store.$patch({
         count: store.count + 1
