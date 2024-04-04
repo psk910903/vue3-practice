@@ -405,6 +405,217 @@
 
     어떤 변수가 isFish와 함께 호출될 때마다, TypeScript는 원래의 유형이 호환 가능한 경우 해당 변수를 해당 특정 유형으로 좁힌다.
 
+      // swim과 fly 둘 다 이제 호출 가능하다.
+      let pet = getSmallPet();
+
+      if (isFish(pet)) {
+        pet.swim();
+      } else {
+        pet.fly();
+      }
+
+    TypeScript는 if 분기에서 pet이 Fish임을 알 뿐만 아니라, else 분기에서는 Fish가 아니라는 것도 알고 있다. 따라서 여기서는 Bird여야 한다.
+
+    isFish 타입 가드를 사용하여 Fish | Bird 배열을 필터링하여 Fish 배열을 얻을 수 있다.
+
+      const zoo: (Fish | Bird)[] = [getSmallPet(), getSmallPet(), getSmallPet()];
+      const underWater1: Fish[] = zoo.filter(isFish);
+      // 또는, 동등하게
+      const underWater2: Fish[] = zoo.filter(isFish) as Fish[];
+
+      // 더 복잡한 예제의 경우 단언을 반복해야 할 수도 있다.
+      const underWater3: Fish[] = zoo.filter((pet): pet is Fish => {
+        if (pet.name === "sharkey") retrun false;
+        return isFish(pet);
+      });
+
+    또한 클래스는 이 유형을 사용하여 유형을 좁힐 수 있다.
+
+
+  단언 함수
+
+    단언 기능을 사용하여 유형을 좁힐 수도 있다.
+
+
+  차별화된 유니온
+
+    지금까지 살펴본 예제 대부분은 string, boolean, number와 같은 간단한 유형의 단일 변수를 좁히는 데 중점을 두었다.
+    이는 일반적이지만, 대부분의 경우 JavaScript에서는 조금 더 복잡한 구조를 다루게 될 것이다.
+
+    동기부여를 위해, 원과 사각형과 같은 모양을 인코딩하려고 시도한다고 가정해보자.
+    원은 반지름을 유지하고, 사각형은 한 변의 길이를 유지한다. 우리는 어떤 모양을 다루고 있는지 알려주는 kind라는 필드를 사용할 것이다.
+    여기서 shape를 정의하는 첫 번째 시도가 있다.
+
+      interface Shape {
+        kind: "cercle" | "square";
+        radius?: number;
+        sideLength?: number,
+      }
+
+    우리는 문자열 리터럴 유형의 유니언을 사용하여 모양을 원 또는 정사각형으로 처리해야 하는지를 나타낸다.
+    각각 "circle"과 "square"로 구성된다. string 대신 "circle" | "square"를 사용함으로써 철자 오기입 문제를 피할 수 있다.
+
+      function handleShape(shape: Shape) {
+        if (shape.kind === "rect") {
+
+          This comparison appears to be unintentional because the types '"circle" | "square"' and '"rect"' have no overlap.
+
+          // ...
+        }
+      }
+
+    우리는 circle 또는 square을 다루고 있는지에 따라 올바른 로직을 적용하는 getArea 함수를 작성할 수 있다.
+    먼저 circle을 다루는 방법을 시도해보자.
+
+      function getArea(shape: Shape) {
+        return Math.PI * shape.radius ** 2;
+
+        'shape.radius' is possibly 'undefined'.
+      }
+
+    strictNullChecks에서는 오류가 발생한다. 이는 radius가 정의되지 않을 수 있기 때문에 적절하다.
+    그러나 kind 속성에 대한 적절한 확인 작업을 수행한다면 어떨까?
+
+      function getArea(shape: Shape) {
+        if (shape.kind === "circle") {
+          return Math.PI * shape.radius ** 2;
+
+          'shape.radius' is possibly 'undefined'.
+        }
+      }
+
+    TypeScript는 여전히 여기서 어떻게 해야 할지 모르고 있다. 타입 검사기보다 더 많은 정보를 알고 있는 지점에 도달했다.
+    radius가 반드시 존재한다고 말하기 위해 non-null 단언(non-null 단언은 shape.radius 뒤에 !를 사용하는 것이다.)을 사용해 볼 수 있다.
+
+      function getArea(shape: Shape) {
+        if (shape.kind === "circle") {
+          return Math.PI * shape.radius! ** 2;
+        }
+      }
+
+    하지만 이 방법은 이상적이지 않다. 우리는 타입 검사기에 shape.radius가 정의되어 있다고 설득하기 위해 non-null 단언(!)으로 약간의 소리를 질러야 했지만,
+    이러한 단언은 코드를 이동시킬 경우 오류가 발생하기 쉽다. 게다가, strictNullChecks 밖에서는 우리가 어떤 필드든 우연히 접근할 수 있다.
+    (선택적 속성은 읽을 때 항상 존재한다고 가정되기 때문이다.) 우리는 분명히 더 나은 방법을 찾을 수 있다.
+
+    shape의 이러한 인코딩의 문제점은 타입 검사기가 kind 속성을 기반으로 radius 또는 sideLength가 있는지 여부를 알 방법이 없다는 것이다.
+    우리는 우리가 알고 있는 내용을 타입 검사기에게 전달해야 한다. 이를 염두에 두고, Shape을 정의하는 또 다른 시도를 해보자.
+
+      interface Circle {
+        kind: "circle";
+        radius: number;
+      }
+
+      interface Square {
+        kind: "square";
+        sideLength: number;
+      }
+
+      type Shape = Circle | Square;
+
+    여기서 우리는 kind 속성에 대해 다른 값을 갖는 두 개의 유형으로 Shape을 적절히 분리했다. 그러나 radius와 sideLength는 각 유형에서 필수 속성으로 선언되었다.
+
+    이제 Shape의 반지름에 접근하려고 할 때 어떻게 되는지 살펴보자.
+
+      function getArea(shape: Shape) {
+        return Math.PI * shape.radius ** 2;
+
+        Property 'radius' does not exist on type 'Shape'.
+          preperty 'radius' does not exist on type 'Square'.
+      }
+
+    우리의 첫 번째 Square 정의와 마찬가지로, 이것은 여전히 오류이다. radius이 선택적이었을 때(strictNullChecks가 활성화되어 있었을 때) TypeScript는 속성이 존재하는지 여부를 알 수 있었기 때문에 오류가 발생했다.
+    이제 Shape이 유니온이 되었으므로, TypeScript는 shape이 square일 수도 있으며, 정사각형에는 radius가 정의되어 있지 않다. 두 가지 해석 모두 정확하지만, strictNullChecks가 어떻게 구성되었는지에 관계없이 Shape의 유니언 인코딩만 오류를 발생시킨다.
+
+    하지만 kind 속성을 다시 확인해 보는 것은 어떨까?
+
+      function getArea(shape: Shape) {
+        if (shape.kind === "circle") {
+          return Math.PI * shape.radius ** 2;
+
+            (parameter) shape: Circle
+        }
+      }
+
+    오류가 해결되었다. 유니온 내의 모든 유형이 리터럴 유형을 포함하는 공통 속성을 갖는 경우, TypeScript는 그것을 차별화된 유니온으로 간주하고 유니온의 멤버를 좁혀낼 수 있다.
+
+    이 경우 kind가 그 공통 속성이었다.(이것이 Shape의 차별화 속성으로 간주되는 것이다.) kind 속성이 "circle"인지 확인하면, kind 속성이 "circle" 유형을 갖지 않는 모든 Shape 유형이 제거된다.
+    이로써 shape은 Circle 유형으로 좁혀진다.
+
+    switch 문에서도 동일한 확인이 작동한다. 이제 pesky! non-null 단언 없이 우리의 완전한 getArea를 작성해 볼 수 있다.
+
+      function getArea(shape: Shape) {
+        switch(shape.kind) {
+          case "circle":
+            return Math.PI * shape.radius ** 2;
+
+              (parameter) shape: Circle
+
+          case "square":
+            return shape.sideLength ** 2
+
+              (parameter) shape: Square
+        }
+      }
+
+    여기서 중요한 점은 Shape의 인코딩이다. TypeScript에 올바른 정보를 전달하는 것 - 즉, Circle과 Square가 실제로 kind 필드가 있는 두 개의 별개 유형임을 전달하는 것 - 이 중요했다.
+    이렇게 하면 일반적인 JavaScript를 작성한 것과 별반 다르지 않은 타입 안전한 TypeScript 코드를 작성할 수 있다. 
+    그런 다음, 타입 시스템은 switch 문의 각 분기에서 타입을 판별하는 "올바른" 작업을 수행할 수 있다.
+
+    또한 위의 예제를 조금 바꿔서 return 키워드 중 일부를 제거해보자. switch문의 서로 다른 절을 실수로 통과할 때 발생할 수 있는 버그를 방지하는 데 타입 검사가 도움이 될 것이다.
+
+    차별화된 유니온은 원과 사각형에 대해 이야기하는 것 이상으로 유용하다. 
+    클라이언트/서버 통신과 같이 네트워크를 통해 메시지를 보낼 때 또는 상태 관리 프레임워크에서 변이를 인코딩할 때와 같이 JavaScript에서 어떤 종류의 메시징 체계를 나타내는 데 유용하다.
+
+
+  never type
+
+    좁혀 나갈 때, 유니온의 옵션을 줄여서 모든 가능성을 제거하고 남은 것이 없는 지점까지 올 수 있다.
+    이러한 경우에 TypeScript는 존재하지 말아야 하는 상태를 나타내기 위해 never 타입을 사용한다.
+
+
+  소진여부 확인(Exhaustiveness checking)
+
+    never 타입은 모든 타입에 할당할 수 있지만, never에는 아무 타입도 할당할 수 없다.
+    (never 자체를 제외하고는) 이것은 스위치 문에서 전체적인 검사를 수행하기 위해 never를 의존하여 좁혀나갈 수 있다는 것을 의미한다.
+
+    예를 들어, 모든 가능한 경우를 처리하는 경우에는 default는 getArea 함수에 추가하여 해당 모양을 never로 할당하려 해도 오류가 발생하지 않는다.
+
+      type Shape = Circle | Square;
+
+      function getArea(shape: Shape) {
+        switch (shape.kind) {
+          case "circle":
+            return Math.PI * shape.radisu ** 2;
+          case "square":
+            return shape.sideLength ** 2;
+          default:
+            const _exhaustiveCheck: never = shape;
+            return _exhaustiveCheck;
+        }
+      }
+
+    Shape 유니온이 새 멤버를 추가하면 TypeScript 오류를 발생한다.
+
+      interface Triangle {
+        kind: "triangle";
+        sideLength: number;
+      }
+
+      type Shape: Circle | Square | Triangle
+
+      function getArea(shape: Shape) {
+        switch (shape.kind) {
+          case "circle":
+            return Math.PI * shape.radius ** 2;
+          case "square":
+            return shape.sideLength ** 2;
+          default
+            const _exhaustiveCheck: never = shape;
+
+          Type 'Triangle' is not assignabel to type 'never'.
+            return _exhaustiveCheck;
+        }
+      }
 -->
 <script>
 export default {
