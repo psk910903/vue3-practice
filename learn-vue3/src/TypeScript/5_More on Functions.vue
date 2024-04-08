@@ -202,7 +202,23 @@
 
           여기 비슷해 보이는 두 함수를 쓰는 방법이 있다.
 
-          
+            function firstElement<Type>(arr: Type[]) {
+              return arr[0];
+            }
+
+            function firstElement2<Type extends any[]>(arr: Type) {
+              return arr[0];
+            }
+
+            // a: number (good)
+            const a = firstElement1([1, 2, 3]);
+            // b: any (bad)
+            const b = firstElement2([1, 2, 3]);
+
+          처음 보기에는 동일하게 보일 수 있지만, firstElement가 이 함수를 작성하는데 더 좋은 방법이다. 이 함수의 추론된 반환 타입은 Type 이지만,
+          firstElement2의 추론된 반환 타입은 TypeScript가 호출 중에 타입을 해성하기 위해서 "기다리기"보다 호출 시점에 arr[0] 표현식을 타입 제한 조건을 이용해서 해석하기 때문에 any가 된다.
+
+            규칙: 가능하다면, 타입 매개변수를 제약하기보다는 타입 매개변수 그 자체를 사용하면 안된다.
 
 
 -->
