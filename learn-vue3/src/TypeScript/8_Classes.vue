@@ -711,6 +711,508 @@
 
 			Static Members
 
+				클래스에는 정적 멤버(static members)가 있을 수 있다. 이러한 멤버들은 클래스의 특정 인스턴스와 관련되지 않는다. 
+				대신에 클래스 생성자 객체를 통해 접근할 수 있다.
+
+					class MyClass {
+						static x = 0;
+						static printX() {
+							console.log(MyClass.x);
+						}
+					}
+					console.log(MyClass.x);
+					MyClass.printX();
+
+				정적 멤버도 동일한 public, protected 및 private 가시성 수정자를 사용할 수 있다.
+
+					class MyClass {
+						private static x = 0;
+					}
+					console.log(MyClass.x);
+					Property 'x' is private and only accessible within class 'MyClass'.
+
+				정적 멤버도 상속된다.
+
+					class Base {
+						static getGreeting() {
+							return "Hello wordl";
+						}
+					}
+					class Derived extends Base {
+						myGreeting = Derived.getGreeting();
+					}
+
+
+				특별한 정적 이름들(Special Static Names)
+
+					특정 정적 이름들은 Function 프로토타입의 속성을 덮어쓰는 것이 안전하지 않거나 불가능할 수 있다.
+					클래스 자체가 new로 호출될 수 있는 함수이므로 name, length, call과 같은 함수 속성은 정적 멤버로 정의할 수 없다.
+
+						class S {
+							static name = "S!";
+						Static property 'name' confilcts with built-in property 'Function.name' of constructor function 'S'.
+						}
+
+
+				정적 클래스가 없는 이유는 무엇일까?
+
+					TypeScript (그리고 JavaScript)에는 예를 들어 C#에서처럼 정적 클래스(static class)라는 구조가 없다.
+					이러한 구조들은 해당 언어에서 모든 데이터와 함수를 클래스 내부에 강제로 넣기 때문에 존재한다.
+					그러나 TypeScript에서는 이러한 제한이 없기 때문에 이러한 구조가 필요하지 않다.
+
+					예를 들어, TypeScript에서는 "static class"구문이 필요하지 않다. 일반 객체(또는 최상위 함수)가 동일한 작업을 수행할 수 있다.
+
+						// 불필요한 "static" 클래스
+						class MyStaticClass {
+							static doSomething() {}
+						}
+
+						// 선호 대안 1
+						function doSomething() {}
+
+						// 선호 대안 2
+						const MyHelperObject() {
+							dosomething() {},
+						}
+
+
+		정적인 클래스의 블록(static Blocks in Classes)
+
+			static 블록을 사용하면 자체 스코프를 가진 문장 시퀀스를 작성할 수 있으며, 이를 통해 포함된 클래스 내부의 private 필드에 엑세스할 수 있다.
+			이는 문자을 작성하는 모든 기능과 변수 누출 없이 클래스의 내부에 완전한 엑세스 권한을 가진 초기화 코드를 작성할 수 있음을 의미한다.
+
+				class Foo {
+					static #count = 0;
+
+					get count() {
+						return Foo.#count;
+					}
+
+					static {
+						try {
+							const lastInstances = loadLastInstances();
+							Foo.#count += lastInstances.length;
+						}
+						catch {}
+					}
+				}
+
+
+		제네릭 클래스(Generic Classes)
+
+			클래스는 인터페이스와 마찬가지로 제네릭할 수 있다. 제네릭 클래스가 new로 인스턴스화될 때, 그 타입 매개변수는 함수 호출과 동일한 방식으로 추론된다.
+
+				class Box<Type> {
+					contents: Type;
+					constructor(value: Type) {
+						this.contents = value;
+					}
+				}
+
+				const b = new Box("hello!");
+
+					const b: Box<string>
+
+			클래스도 인터페이스와 마찬가지로 제네릭 제약 조건과 기본값을 사용할 수 있다.
+
+
+			정적 부재의 매개 변수 입력
+
+				이 코드는 유효하지 않다. 그 이유가 명확하지 않을 수도 있다.
+
+					class Box<Type> {
+						static defaultValue: Type;
+					Static members cannot reference class type parameter.
+					}
+
+				타입은 항상 완전히 삭제된다. 실행 중에는 Box.defaultValue 속성 슬롯이 하나뿐이다.
+				이는 Box<string>.defaultValue를 설정하면 Box<number>.defaultValue도 변경된다는 것을 의미한다.
+				일반 클래스의 정적 멤버는 클래스의 형식 매개변수를 참조할 수 없다.
+
+
+		클래스 런타임의 this
+
+			JavaScript에서의 this 처리는 실제로 특이할 수 있다. JavaScript에서의 this는 실행 컨텍스트에 따라 동적으로 결정된다.
+			함수가 호출될 때 this는 호출 방법에 따라 결정되며, 일반적으로는 호출한 객체를 가리킨다. 
+			그러나 함수가 콜백 함수로 사용될 때나 객체의 메서드로 사용될 때와 같이 호출 방식이 달라질 수 있다.
+			이로 인해 this의 동작이 예상치 못하게 변할 수 있으며, 이것이 종종 개발자들 사이에서 혼란을 일으키는 원인 중 하나이다.
+			TypeScript는 JavaScript의 이러한 특이한 동작을 변경하지 않으며, JavaScript의 동작을 그대로 유지한다.
+
+				class MyClass {
+					name = "MyClass";
+					getName() {
+						return this.name;
+					}
+				}
+				const c = new MyClass();
+				const obj = {
+					name: "obj",
+					getName: c.getName;
+				}
+
+				// "obj"출력
+				console.log(obj.getName());
+
+			길게 설명하면, 기본적으로 함수 내부의 this 값은 함수가 호출된 방식에 따라 달라진다. 이 예제에서 함수가 obj 참조를 통해 호출되었기 때문에 this의 값은 클래스 인스턴스가 아닌 obj가 된다.
+
+			이런 경우가 거의 바람직하지 않은 경우가 많다 TypeScript는 이러한 종류의 오류를 완화하거나 방지하기 위한 몇 가지 방법을 제공한다.
+
+
+			화살표 함수
+
+				만약 자주 호출될 함수가 this 컨텍스트를 잃어버리는 경우, 메서드 정의 대신 화살표 함수 속성을 사용하는 것이 좋을 수 있다.
+
+					class MyClass {
+						name = "MyClass";
+						getName = () => {
+							return this.name;
+						};
+					}
+					const c = new MyClass();
+					const g = c.getName;
+					// "MyClass" 출력
+					console.log(g());
+
+				이 방법으로 정의된 각 함수마다 클래스 인스턴스가 별도의 복사본을 가지기 때문에 더 많은 메모리를 사용한다.
+				하지만 런타임에서 this 값은 TypeScript로 확인되지 않은 코드에도 올바르게 보장된다.
+				하지만 이 방법을 사용할 경우, 파생 클래스에서 super.getName을 사용할 수 없다.
+				왜냐하면 프로토타입 체인에 기본 클래스 메서드를 가져올 항목이 없기 때문이다.
+
+
+				this 파라미터
+
+					메서드나 함수 정의 내에서 this 라는 초기 매개변수는 TypeScript에서 특별한 의미를 갖는다. 이러한 매개변수는 컴파일 중에 삭제된다.
+
+						// 'this' 매개 변수로 Script 입력
+						function fn(this: SomeType, x: number) {
+							// ...
+						}
+
+						// JavaScript output
+						function fn(x) {
+							// ...
+						}
+
+					TypeScript는 함수로 호출할 때 this 매개변수가 올바른 컨텍스트로 전달되는지를 확인한다.
+					화살표 함수 대신에, 메서드 정의 this 매개변수를 추가하여 메서드가 올바르게 호출되는지를 정적으로 강제할 수 있다.
+
+						class Myclass {
+							name = "MyClass";
+							getName(this: MyClass) {
+								return this.name;
+							}
+						}
+						const c = new MyClass();
+						// OK
+						c.getName();
+
+						// Error
+						const g = c.getName;
+						console.log(g());
+						The 'this' context of type 'void' is not assignable to method's 'this' of type 'MyClass'.
+
+					이 방법은 화살표 함수 접근 방식과 정반대의 트레이드오프를 제공한다.
+
+					- JavaScript 호출자들은 실수로 클래스 메서드를 여전히 잘못 사용할 수 있다.
+					- 클래스 정의당 하나의 함수만 할당되며 클래스 인스턴스당 하나씩이 아니다.
+					- 기본 메서드 정의는 여전히 super를 통해 호출할 수 있다.
+
+
+		this Types
+
+			클래스 내부에서, this라는 특별한 타입은 현재 클래스의 타입을 동적으로 참조한다. 이것이 어떻게 유용한지 살펴보자.
+
+				class Box {
+					contents: string = "";
+					set(value: string) {
+
+						(method) Box.set(value: string): this
+
+						this.contents = value;
+						return this;
+					}
+				}
+
+			여기서 TypeScript는 set의 반환 타입은 Box 대신 this로 추론했다. 이제 Box의 하위 클래스를 만들어 보자.
+
+				class ClearbleBox extends Box {
+					clear() {
+						this.contents = "";
+					}
+				}
+
+				const a = new ClearbleBox();
+				const b = a.set("hello");
+
+					const b: ClearbleBox
+
+			여기서 TypeScript는 set의 반환 타입을 Box 대신 this로 추론했다. 이제 Box의 하위 클래스를 만들어 보자.
+
+				class Box {
+					contens: stirng = "";
+					sameAs(other: this) {
+						return other.content === this.content;
+					}
+				}
+
+			이것은 다른 것을 Box로 작성하는 것과 다르다. - 파생 클래스가 있는 경우, 그것의 sameAs 메서드는 이제 해당 파생 클래스의 다른 인스턴스만 수락한다.
+
+				class Box {
+					content: string = "";
+					sameAs(other: this) {
+						return other.content === this.content;
+					}
+				}
+
+				class DerivedBox extends Box {
+					otherContent: string = "?";
+				}
+
+				const base = new Box();
+				const derived = new DerivedBox();
+				derived.sameAs(base);
+				Argument of type 'Box' is no assignable to parameter of type 'DerivedBox'.
+					Property 'otherContent' is missing in type 'Box' but required in type 'DerivedBox'.
+
+
+		this를 기반으로 하는 타입 가드
+
+			클래스나 인터페이스의 메서드에서 반환 위치에 this 타입으로 사용할 수 있다.
+			이것을 타입 좁힘과 함께 사용하면(예: if문), 대상 객체의 타입이 지정된 타입으로 좁혀진다. 이렇게 하면 해당 객체의 타입을 특정 조건에 따라 좁혀서 사용할 수 있다.
+
+				class FileSystemObject {
+					isFile(): this is FileRep {
+						return this instanceof FileRap;
+					}
+					isDirectory(): this is Directory {
+						return this instanceof Directory;
+					}
+					isNetworked(): this is Networked & this {
+						return this.networked;
+					}
+					constructor(public path: stirng, private networked: boolean) {}
+				}
+
+				class FileRep extends FileSystemObject {
+					constructor(path: string, public content: string) {
+						super(path, false);
+					}
+				}
+
+				class Directory extends FileSystemObject {
+					children: FileSystemObject[];
+				}
+
+				interface Networked {
+					host: string;
+				}
+
+				const fso: FileSystemObject = new FileRep("foo/bar.txt", "foo");
+
+				if (fso.isFile()) {
+					fso.content;
+
+						const fso: FileRep
+				} else if (fso.isDirectory()) {
+					fso.children
+
+						const fso: Directory
+				} else if (fso.isNetworked()) {
+					fso.host;
+
+						const fso: Networked & FileSystemObject
+				}
+
+			this를 기반으로 한 타입 가드의 일반적인 사용 사례 중 하나는 특정 필드의 지연 유효성 검사를 허용하는 것이다.
+			예를 들어, 이 경우에는 hasValue가 true로 확인된 경우 box 내부에 보관된 값에서 undefined를 제거한다.
+
+
+		파라미터 속성
+
+			TypeScript에는 생성자 매개변수를 동일한 이름과 값으로 클래스 속성을 ㅗ변환하는 특별한 구문이 있다.
+			이를 매개변수 속성이라고하며 생성자 인수 앞에 가시성 수정자 public, private, protected 또는 readonly 중 하나를 접두사로 붙여서 생성된다.
+			결과 필드는 해당 수정자를 가져온다.
+
+				class Params {
+					consturctor(
+						public readonly x: number,
+						protected y: number,
+						private: z: number
+					) {
+						// ...
+					}
+				}
+				const s = new Params(1, 2, 3);
+				console.log(a.x);
+
+					(property) Params.x: number
+
+				console.log(a.z)
+				Property 'z' is private and only accessible within class 'Params'.
+
+
+		클래스 표현식
+
+			클래스 표현식은 클래스 선언과 매우 유사하다. 유일한 실제 차이점은 클래스 표현식에는 이름이 필요하지 않지만, 해당 표현식이 묶인 식별자를 통해 참조할 수 있다.
+
+				const someClass = class<Type> {
+					content: Type;
+					constructor(value: Type) {
+						this.content = value;
+					}
+				};
+
+				const m = new someClass("Hello world");
+
+					const m: someClass<string>
+
+
+		생성자 시그니처
+
+			자바스크립트 클래스는 new 연산자를 사용하여 인스턴스화된다. 클래스 자체의 타입을 감안할 때 instanceType 유틸리티 타입은 이 작업을 모델링한다.
+
+				class Point {
+					createeAt: number;
+					x: number;
+					y: number
+					constructor(x: number, y: number) {
+						this.createdAt = Date.now()
+						this.x = x;
+						this.y = y;
+					}
+				}
+				type PointInstance = InstanceType<typeof Point>
+
+				fnction moveRigth(point: PointInstance) {
+					point.x += 5;
+				}
+
+				const point = new Point(3, 4);
+				moveRight(point);
+				point.x; // => 8
+
+
+		abstract 클래스와 멤버
+
+			타입스크립트의 클래스, 메서드 및 필드는 추상일 수 있다.
+
+			추상 메서드 또는 추상 필드는 구현이 제공되지 않은 것이다. 이러한 멤버들은 직접적으로 인스턴스화될 수 없는 추상 클래스 내에 존재해야 한다.
+
+			추상 클래스의 역할은 모든 추상 멤버를 구현하는 하위 클래스의 기본 클래스로서 역할이다.
+			클래스에 추상 멤버가 없을 때 그것은 구체적이라고 한다.
+
+			예를 들어,
+
+				abstract class Base {
+					abstract getName(): string;
+
+					printName() {
+						console.log("Hello, " + this.getName());
+					}
+				}
+
+				const b = new Base();
+				Cannot create an istance of an abstract class.
+
+			Base를 새로운 키워드로 인스턴스화할 수 없다. 왜냐하면 이것은 추상 클래스이기 때문이다.
+			대신, 파생 클래스를 만들고 추상 멤버를 구현해야 한다.
+
+				class Derived extends Base {
+					getName() {
+						return "world";
+					}
+				}
+
+				const d = new Derived();
+				d.printName();
+
+			추상 클래스의 추상 멤버를 구현하는 것을 잊으면 오류가 발생한다.
+
+				class Derived extend Base {
+				Non-abstract class 'Derived' dose not implement all abstract members of 'Base'
+				}
+
+
+			추상 생성자 시그니처
+
+				어떤 추상 클래스에서 파생된 클래스의 인스턴스를 생성하는 클래스 생성자 함수를 받아들이고 싶을 때가 있다.
+
+				예를 들어, 다음과 같은 코드를 작성하고 싶을 수 있다.
+
+					function greet(ctor: typeof Base) {
+						const instance = new ctor();
+					Cannot create an instance of an abstract class.
+						instance.printName();
+					}
+
+				TypeScript가 올바르게 말하고 있다. 추상 클래스를 인스턴스화하려고 하고 있다는 것이다.
+				결국 greet의 정의를 고려하면 다음과 같은 코드를 작성할 수 있다. 이 코드는 추상 클래스를 생성하게 된다.
+
+					// Bad
+					greet(Base);
+
+				대신, 생성자 시그니처를 갖는 것을 받는 함수를 작성하려고 한다.
+
+					function greet(ctor: new () => Base) {
+						const instance = new ctor();
+						instance.printName();
+					}
+					greet(Derived);
+					greet(Base);
+					Argument of type 'typeof Base' is not assignable to parameter of type 'new () => Base'.
+						Cannot assign an abstract constructor type to a non-abstact constructor type.
+
+				이제 TypeScript는 생성자 함수를 호출할 수 있는 클래스에 대해 올바르게 알려준다.
+				Derived는 구체적이기 때문에 호출할 수 있지만, Base는 호출할 수 없다.
+
+
+		클래스간의 관계
+
+			대부분의 경우 TypeScript에서 클래스는 다른 타입과 구조적으로 비교된다. 예를 들어, 이 두 클래스는 동일하므로 서로 대신 사용할 수 있다.
+
+				class Point1 {
+					x = 0;
+					y = 0;
+				}
+
+				class Point2 {
+					x = 0;
+					y = 0;
+				}
+
+				// OK
+				const p: Point1 = new Point2();
+
+			마찬가지로, 명시적인 상속이 없더라도 클래스 간의 하위 유형 관계가 존재한다.
+
+				class Person {
+					name: string;
+					age: number;
+				}
+
+				class Employee {
+					name: string;
+					age: number;
+					salary: number;
+				}
+
+				// OK
+				const p: Person = new Employee();
+
+			이것은 직관적으로 보이지만, 다른 경우보다 더 이상한 몇 가지 경우가 있다.
+
+				빈 클래스는 멤버가 없다. 구조적인 유형 시스템에서는 멤버가 없는 유형이 일반적으로 다른 모든 것의 상위 유형이다.
+				따라서 빈 클래스를 작성하면(하면 안된다.) 아무 것이나 해당 위치에 사용할 수 있다.
+
+					class Empty {}
+
+					function fn(x: Empty) {}
+
+					// All OK
+					fn(window);
+					fn({});
+					fn(fn);
+
 -->
 <script>
 export default {
